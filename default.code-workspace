@@ -1,0 +1,74 @@
+{
+    "folders": [
+        {
+            "path": "."
+        }
+    ],
+    "settings": {},
+    "tasks": {
+        "version": "2.0.0",
+        "tasks": [
+            {
+                "label": "Make",
+                "type": "shell",
+                "command": "make",
+                "problemMatcher": [],
+                "group": {
+                    "kind": "build",
+                    "isDefault": true
+                }
+            },
+            {
+                "label": "Clean",
+                "type": "shell",
+                "command": "make clean",
+                "problemMatcher": []
+            },
+            {
+                "dependsOn": "Make",
+                "label": "QEMU",
+                "type": "shell",
+                "command": "make qemu"
+            },
+            {
+                "dependsOn": "Make",
+                "label": "QEMU Debug",
+                "type": "shell",
+                "command": "make qemu-gdb",
+                "isBackground": true,
+                "problemMatcher": [
+                    {
+                        "pattern": [
+                            {
+                                "regexp": ".",
+                                "file": 1,
+                                "location": 2,
+                                "message": 3
+                            }
+                        ],
+                        "background": {
+                            "activeOnStart": true,
+                            "beginsPattern": ".",
+                            "endsPattern": "Now run 'gdb' in another window"
+                        }
+                    }
+                ]
+            }
+        ]
+    },
+    "launch": {
+        "version": "0.2.0",
+        "configurations": [
+            {
+                "type": "gdb",
+                "request": "launch",
+                "name": "Launch xv6",
+                "gdbpath": "/usr/bin/gdb-multiarch",
+                "target": "./kernel/kernel",
+                "cwd": "${workspaceRoot}",
+                "valuesFormatting": "parseText",
+                "preLaunchTask": "QEMU Debug"
+            }
+        ]
+    }
+}

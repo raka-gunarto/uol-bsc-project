@@ -4,10 +4,24 @@
             "path": "."
         }
     ],
-    "settings": {},
+    "settings": {
+        "latex-workshop.latex.outDir": "%DIR%/output"
+    },
     "tasks": {
         "version": "2.0.0",
         "tasks": [
+            {
+                "label": "Outline PDF",
+                "type": "shell",
+                "command": "cd ./report/outline && latexmk outlineAndPlan.tex",
+                "problemMatcher": [],
+            },
+            {
+                "label": "Final Report PDF",
+                "type": "shell",
+                "command": "cd ./report/final && latexmk finalReport.tex",
+                "problemMatcher": [],
+            },
             {
                 "label": "Make",
                 "type": "shell",

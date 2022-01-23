@@ -57,5 +57,5 @@ static void setup_vga_card(volatile uint32 *header)
   header[4] = VGA_FRAMEBUFFER_BASE;
 
   // tell our vga module it's ready to perform graphics initialisation
-  vgainit();
+  vgainit(0);
 }

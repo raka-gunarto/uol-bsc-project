@@ -11,14 +11,23 @@ static void pwrite(uint32, uint32, uint8);
 static uint8 pread(uint32, uint32);
 
 static volatile uint8 *vga_framebuffer = (uint8 *)VGA_FRAMEBUFFER_BASE;
-void vgainit(void)
+void vgainit(int cpu)
 {
-  printf("vga init\n");
+  if (cpu == 0)
+  {
+    printf("vga init\n");
+    vga_setmode(LINEAR_256COLOR_320x200);
+  }
 
-  vga_setmode(LINEAR_256COLOR_320x200);
+  static const int xfit = 320 / BOOTIMG_WIDTH;
+
+  const int xoffset = cpu % xfit;
+  const int yoffset = cpu / xfit;
+
   for (int y = 0; y < BOOTIMG_HEIGHT; y++)
     for (int x = 0; x < BOOTIMG_WIDTH; x++)
-      vga_framebuffer[(y + (100 - BOOTIMG_HEIGHT / 2)) * 320 + x + (160 - BOOTIMG_WIDTH / 2)] = BOOTIMG[y * 91 + x];
+      // vga_framebuffer[(y + (100 - BOOTIMG_HEIGHT / 2)) * 320 + x + (160 - BOOTIMG_WIDTH / 2)] = BOOTIMG[y * 91 + x];
+      vga_framebuffer[(y * 320) + x + (xoffset * BOOTIMG_WIDTH) + (yoffset * 320 * BOOTIMG_HEIGHT)] = BOOTIMG[y * BOOTIMG_WIDTH + x];
 }
 
 void vga_setmode(enum VGA_MODES mode)
@@ -42,7 +51,11 @@ void vga_setmode(enum VGA_MODES mode)
 
   if (mode == TEXT) // set font if text mode
   {
+    // switch to planes 2,3 to set font data
+
+    // switch back to plane 0,1
   }
+
   pwrite(0x3c0, 0xff, 0x20); // enable display
 }
 

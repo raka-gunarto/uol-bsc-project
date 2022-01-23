@@ -43,7 +43,7 @@ enum VGA_MODES
   LINEAR_256COLOR_320x200
 };
 
-void vgainit(void);
+void vgainit(int);
 void vga_setmode(enum VGA_MODES mode);
 
 static const unsigned int VGA_256COL_PALETTE[256] = {

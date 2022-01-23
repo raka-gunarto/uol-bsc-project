@@ -1,6 +1,6 @@
-static unsigned int BOOTIMG_WIDTH = 91;
-static unsigned int BOOTIMG_HEIGHT = 96;
-static char BOOTIMG[] = {
+static const unsigned int BOOTIMG_WIDTH = 91;
+static const unsigned int BOOTIMG_HEIGHT = 96;
+static const char BOOTIMG[] = {
 	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,

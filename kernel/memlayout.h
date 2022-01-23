@@ -6,8 +6,8 @@
 // 00001000 -- boot ROM, provided by qemu
 // 02000000 -- CLINT
 // 0C000000 -- PLIC
-// 10000000 -- uart0 
-// 10001000 -- virtio disk 
+// 10000000 -- uart0
+// 10001000 -- virtio disk
 // 80000000 -- boot ROM jumps here in machine mode
 //             -kernel loads the kernel here
 // unused RAM after 80000000.
@@ -27,7 +27,7 @@
 
 // core local interruptor (CLINT), which contains the timer.
 #define CLINT 0x2000000L
-#define CLINT_MTIMECMP(hartid) (CLINT + 0x4000 + 8*(hartid))
+#define CLINT_MTIMECMP(hartid) (CLINT + 0x4000 + 8 * (hartid))
 #define CLINT_MTIME (CLINT + 0xBFF8) // cycles since boot.
 
 // qemu puts platform-level interrupt controller (PLIC) here.
@@ -45,7 +45,7 @@
 // for use by the kernel and user pages
 // from physical address 0x80000000 to PHYSTOP.
 #define KERNBASE 0x80000000L
-#define PHYSTOP (KERNBASE + 128*1024*1024)
+#define PHYSTOP (KERNBASE + 128 * 1024 * 1024)
 
 // map the trampoline page to the highest address,
 // in both user and kernel space.
@@ -53,7 +53,7 @@
 
 // map kernel stacks beneath the trampoline,
 // each surrounded by invalid guard pages.
-#define KSTACK(p) (TRAMPOLINE - ((p)+1)* 2*PGSIZE)
+#define KSTACK(p) (TRAMPOLINE - ((p) + 1) * 2 * PGSIZE)
 
 // User memory layout.
 // Address zero first:
@@ -65,3 +65,26 @@
 //   TRAPFRAME (p->trapframe, used by the trampoline)
 //   TRAMPOLINE (the same page as in the kernel)
 #define TRAPFRAME (TRAMPOLINE - PGSIZE)
+
+// https://github.com/qemu/qemu/blob/e750c10167fa8ad3fcc98236a474c46e52e7c18c/hw/riscv/virt.c#L59
+// in qemu riscv "virt" machine, the address space
+// for PCI MMIO (memory mapped IO) addresses are
+// 0x40000000 - 0x80000000
+//
+// realistically we should track the base addresses set for
+// pci devices and set them dynamically, but since we're only
+// supporting one device it's fine to hardcode the address for now
+#define VGA_FRAMEBUFFER_BASE 0x40000000L
+#define VGA_FRAMEBUFFER_SIZE 0x1000000L
+
+// https://github.com/qemu/qemu/blob/e750c10167fa8ad3fcc98236a474c46e52e7c18c/hw/riscv/virt.c#L58
+// in qemu riscv "virt" machine, the configuration space
+// starts at 0x30000000 and is 0x10000000 bytes long
+#define PCI_ECAM_BASE 0x30000000L
+#define PCI_ECAM_LEN 0x10000000L
+
+// https://github.com/qemu/qemu/blob/e750c10167fa8ad3fcc98236a474c46e52e7c18c/hw/riscv/virt.c#L52
+// in qemu riscv "virt" machine, the port I/O
+// address space starts at 0x3000000 and is 0x10000 long
+#define PCI_PIO_BASE 0x3000000L
+#define PCI_PIO_LEN 0x10000L

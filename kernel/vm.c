@@ -43,6 +43,15 @@ kvmmake(void)
   // the highest virtual address in the kernel.
   kvmmap(kpgtbl, TRAMPOLINE, (uint64)trampoline, PGSIZE, PTE_R | PTE_X);
 
+  // map PCI ECAM space
+  kvmmap(kpgtbl, PCI_ECAM_BASE, PCI_ECAM_BASE, PCI_ECAM_LEN, PTE_R | PTE_W);
+
+  // map PCI PIO
+  kvmmap(kpgtbl, PCI_PIO_BASE, PCI_PIO_BASE, PCI_PIO_LEN, PTE_R | PTE_W);
+
+  // map VGA framebuffer
+  kvmmap(kpgtbl, VGA_FRAMEBUFFER_BASE, VGA_FRAMEBUFFER_BASE, VGA_FRAMEBUFFER_SIZE, PTE_R | PTE_W);
+
   // map kernel stacks
   proc_mapstacks(kpgtbl);
   

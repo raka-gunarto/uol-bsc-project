@@ -7,27 +7,43 @@
 
 #include "bootimg.h"
 
+static volatile int available = 0;
+
 static void pwrite(uint32, uint32, uint8);
 static uint8 pread(uint32, uint32);
+
+void vga_setavailable()
+{
+  available = 1;
+}
 
 static volatile uint8 *vga_framebuffer = (uint8 *)VGA_FRAMEBUFFER_BASE;
 void vgainit(int cpu)
 {
+  // check if there is a VGA device ready
+  if (!available)
+    return;
+
+  // check cpu, if 0, init the VGA mode
   if (cpu == 0)
   {
     printf("vga init\n");
     vga_setmode(LINEAR_256COLOR_320x200);
   }
 
+  //-- load the bootimage on screen, offset by CPU
+  // find how many images fit in a line on the screen
   static const int xfit = 320 / BOOTIMG_WIDTH;
 
+  // figure out the offset for the image based on the CPU id
   const int xoffset = cpu % xfit;
   const int yoffset = cpu / xfit;
 
+  // copy image to screen framebuffer, taking offset into account
   for (int y = 0; y < BOOTIMG_HEIGHT; y++)
     for (int x = 0; x < BOOTIMG_WIDTH; x++)
-      // vga_framebuffer[(y + (100 - BOOTIMG_HEIGHT / 2)) * 320 + x + (160 - BOOTIMG_WIDTH / 2)] = BOOTIMG[y * 91 + x];
       vga_framebuffer[(y * 320) + x + (xoffset * BOOTIMG_WIDTH) + (yoffset * 320 * BOOTIMG_HEIGHT)] = BOOTIMG[y * BOOTIMG_WIDTH + x];
+  //--
 }
 
 void vga_setmode(enum VGA_MODES mode)
@@ -51,10 +67,33 @@ void vga_setmode(enum VGA_MODES mode)
 
   if (mode == TEXT) // set font if text mode
   {
-    // switch to planes 2,3 to set font data
+    // setting graphics controller to linear mode
+    pwrite(0x3ce, 0x05, 0x00);
+    pwrite(0x3ce, 0x06, 0x04);
 
-    // switch back to plane 0,1
+    // setting sequencer to linear mode and change to plane 2
+    // to set font data
+    pwrite(0x3c4, 0x02, 0x04);
+    pwrite(0x3c4, 0x04, 0x06);
+
+    // set font data, do every 32 bytes even though each glyph is 16
+    // this is because VGA has space for 8x32 fonts but we are using
+    // 8x16
+    for (int i = 0; i < 4096; i += 16)
+      for (int j = 0; j < 16; ++j)
+        vga_framebuffer[2 * i + j] = VGA_8x16_FONT[i + j];
+
+    // set sequencer back to normal operation
+    pwrite(0x3c4, 0x02, 0x03);
+    pwrite(0x3c4, 0x04, 0x02);
+
+    // set graphics controller back to normal operation
+    pwrite(0x3ce, 0x05, 0x10);
+    pwrite(0x3ce, 0x06, 0x0E);
   }
+
+  for (i = 0; i < VGA_REGISTERS_LEN; ++i) // set register values for mode
+    printf("port: %x, idx: %x, value: %x\n", VGA_MODE_PORT[i], VGA_MODE_IDX[i], pread(VGA_MODE_PORT[i], VGA_MODE_IDX[i]));
 
   pwrite(0x3c0, 0xff, 0x20); // enable display
 }

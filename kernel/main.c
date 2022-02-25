@@ -21,6 +21,7 @@ main()
     kvminit();       // create kernel page table
     kvminithart();   // turn on paging
     pciinit();       // pci devices
+    vgainit(0);       // setup VGA (if available)
     procinit();      // process table
     trapinit();      // trap vectors
     trapinithart();  // install kernel trap vector

@@ -484,3 +484,16 @@ sys_pipe(void)
   }
   return 0;
 }
+
+uint64
+sys_seek(void)
+{
+  struct file *f;
+  int type;
+  uint64 offset;
+
+  if(argfd(0, 0, &f) < 0 || argint(2, &type) < 0 || argaddr(1, &offset) < 0)
+    return -1;
+  
+  return fileseek(f, offset, type);
+}

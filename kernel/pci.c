@@ -30,13 +30,13 @@ void pciinit(void)
       // first 32 bits of the PCI header is the
       // device ID and the vendor ID, combined
       // becomes the PCI ID
-      switch (header[0])
+      switch (*header)
       {
       case 0x11111234:
         setup_vga_card(header);
         break;
       default:
-        if (header[0] != 0xFFFFFFFF)
+        if (*header != 0xFFFFFFFF)
           printf("pciinit: unknown PCI device: 0x%x\n", header[0]);
         break;
       }
@@ -57,5 +57,5 @@ static void setup_vga_card(volatile uint32 *header)
   header[4] = VGA_FRAMEBUFFER_BASE;
 
   // tell our vga module it's ready to perform graphics initialisation
-  vgainit();
+  vga_setavailable();
 }

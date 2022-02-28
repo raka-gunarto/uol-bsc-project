@@ -3,6 +3,7 @@
 #include "memlayout.h"
 #include "riscv.h"
 #include "defs.h"
+#include "vga.h"
 
 volatile static int started = 0;
 
@@ -20,6 +21,7 @@ main()
     kvminit();       // create kernel page table
     kvminithart();   // turn on paging
     pciinit();       // pci devices
+    vgainit(0);       // setup VGA (if available)
     procinit();      // process table
     trapinit();      // trap vectors
     trapinithart();  // install kernel trap vector
@@ -37,6 +39,7 @@ main()
       ;
     __sync_synchronize();
     printf("hart %d starting\n", cpuid());
+    vgainit(cpuid());
     kvminithart();    // turn on paging
     trapinithart();   // install kernel trap vector
     plicinithart();   // ask PLIC for device interrupts

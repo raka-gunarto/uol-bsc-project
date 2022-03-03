@@ -21,7 +21,7 @@ entry("wait");
 entry("pipe");
 entry("read");
 entry("write");
-entry("seek")
+entry("seek");
 entry("close");
 entry("kill");
 entry("exec");

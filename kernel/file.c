@@ -196,12 +196,15 @@ fileseek(struct file *f, uint64 offset, int type)
   else if (type & SEEK_END)
     newoff = f->ip->size + offset;
   
+  // offset wasn't set properly or is over the file size
   if (newoff == -1 || offset > f->ip->size)
   {
     iunlock(f->ip);
-    return -1;
+    return -1; // fail
   }
 
+  // set the new offset and return
+  iunlock(f->ip);
   f->off = newoff;
   return 0;
 }

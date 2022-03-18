@@ -6,11 +6,13 @@
 #include "vga.h"
 
 volatile static int started = 0;
+volatile static int counter = 0;
 
 // start() jumps here in supervisor mode on all CPUs.
 void
 main()
 {
+  counter++;
   if(cpuid() == 0){
     consoleinit();
     printfinit();
@@ -44,6 +46,10 @@ main()
     trapinithart();   // install kernel trap vector
     plicinithart();   // ask PLIC for device interrupts
   }
+
+  // hopefully the last CPU to finish will start the window manager
+  if (counter-- == 0)
+    windowmaninit();
 
   scheduler();        
 }

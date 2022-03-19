@@ -8,16 +8,48 @@
 #include "bootimg.h"
 
 static volatile int available = 0;
+static volatile enum VGA_MODES current_mode;
+static volatile int current_width = 0;
+static volatile int current_height = 0;
 
 static void pwrite(uint32, uint32, uint8);
 static uint8 pread(uint32, uint32);
 
+static volatile uint8 *vga_framebuffer = (uint8 *)VGA_FRAMEBUFFER_BASE;
+
+int vga_putpixel(int x, int y, uint8 p)
+{
+  if (!available || current_mode != LINEAR_256COLOR_320x200)
+    return -1;
+  
+  if (x < 0 || x >= current_width || y < 0 || y >= current_height)
+    return -1;
+  
+  vga_framebuffer[y * current_width + x] = p;
+  return 0;
+}
+
+enum VGA_MODES vga_getmode()
+{
+  return current_mode;
+}
+
+int vga_getwidth()
+{
+  return current_width;
+}
+
+int vga_getheight()
+{
+  return current_height;
+}
+
+// to be called by PCI module if VGA hardware is detected
 void vga_setavailable()
 {
   available = 1;
 }
 
-static volatile uint8 *vga_framebuffer = (uint8 *)VGA_FRAMEBUFFER_BASE;
 void vgainit(int cpu)
 {
   // check if there is a VGA device ready
@@ -51,9 +83,14 @@ void vga_setmode(enum VGA_MODES mode)
   int i;
   for (i = 0; i < VGA_REGISTERS_LEN; ++i) // set register values for mode
     pwrite(VGA_MODE_PORT[i], VGA_MODE_IDX[i], VGA_MODE_VAL[i][mode]);
+  current_mode = mode;
 
   if (mode == LINEAR_256COLOR_320x200) // set 256 palette if graphics mode
   {
+    // should have a lookup table, this is fine for now
+    current_height = 200;
+    current_width = 320;
+
     pwrite(0x3c8, 0xff, 0x00); // set DAC colour register mode to write
     for (int i = 0; i < 256; i++)
     {
@@ -67,6 +104,10 @@ void vga_setmode(enum VGA_MODES mode)
 
   if (mode == TEXT) // set font if text mode
   {
+    // should have a lookup table, this is fine for now
+    current_height = 25;
+    current_width = 80;
+
     // setting graphics controller to linear mode
     pwrite(0x3ce, 0x05, 0x00);
     pwrite(0x3ce, 0x06, 0x04);

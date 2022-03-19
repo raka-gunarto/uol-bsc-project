@@ -179,6 +179,10 @@ int             copyinstr(pagetable_t, char *, uint64, uint64);
 void            vgainit(int);
 void            vga_setmode(enum VGA_MODES);
 void            vga_setavailable();
+int             vga_putpixel(int, int, uint8);
+enum VGA_MODES  vga_getmode();
+int             vga_getwidth();
+int             vga_getheight();
 
 
 // plic.c

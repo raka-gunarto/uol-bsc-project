@@ -8,9 +8,12 @@
 #include "riscv.h"
 #include "defs.h"
 #include "proc.h"
+#include "windowman.h"
 
 #define ROWS 2
 #define COLUMNS 2
+
+struct windowevent evt_queue[ROWS*COLUMNS][NEVTS];
 
 // reads max n events from winow event queue, with window specified by the minor
 // number in the device file.

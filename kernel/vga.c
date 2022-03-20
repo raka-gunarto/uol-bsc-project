@@ -133,9 +133,6 @@ void vga_setmode(enum VGA_MODES mode)
     pwrite(0x3ce, 0x06, 0x0E);
   }
 
-  for (i = 0; i < VGA_REGISTERS_LEN; ++i) // set register values for mode
-    printf("port: %x, idx: %x, value: %x\n", VGA_MODE_PORT[i], VGA_MODE_IDX[i], pread(VGA_MODE_PORT[i], VGA_MODE_IDX[i]));
-
   pwrite(0x3c0, 0xff, 0x20); // enable display
 }
 

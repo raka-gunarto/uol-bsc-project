@@ -183,6 +183,7 @@ int             vga_putpixel(int, int, uint8);
 enum VGA_MODES  vga_getmode();
 int             vga_getwidth();
 int             vga_getheight();
+volatile uint8* vga_getframebuffer();
 
 
 // plic.c
@@ -198,6 +199,7 @@ void            virtio_disk_intr(void);
 
 // windowman.c
 void            windowmaninit(void);
+int            windowman_getsize();
 
 // number of elements in fixed-size array
 #define NELEM(x) (sizeof(x)/sizeof((x)[0]))

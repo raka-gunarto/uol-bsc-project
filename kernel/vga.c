@@ -17,6 +17,12 @@ static uint8 pread(uint32, uint32);
 
 static volatile uint8 *vga_framebuffer = (uint8 *)VGA_FRAMEBUFFER_BASE;
 
+// direct access to framebuffer, dangerous
+volatile uint8* vga_getframebuffer()
+{
+  return vga_framebuffer;
+}
+
 int vga_putpixel(int x, int y, uint8 p)
 {
   if (!available || current_mode != LINEAR_256COLOR_320x200)

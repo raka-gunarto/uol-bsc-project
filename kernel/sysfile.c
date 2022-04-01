@@ -322,12 +322,15 @@ sys_open(void)
     return -1;
   }
 
-  if (ip->type == T_DEVICE && ip->major == WINDOW) 
+  if (ip->type == T_DEVICE && ip->major == WINDOW) {
     if (ip->ref > 1) { // only one access per window
       iunlockput(ip);
       end_op();
       return -1;
     }
+
+    ip->size = windowman_getsize();
+  }
 
   if((f = filealloc()) == 0 || (fd = fdalloc(f)) < 0){
     if(f)

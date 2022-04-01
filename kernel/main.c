@@ -48,7 +48,7 @@ main()
   }
 
   // hopefully the last CPU to finish will start the window manager
-  if (counter-- == 0)
+  if (--counter == 0)
     windowmaninit();
 
   scheduler();        

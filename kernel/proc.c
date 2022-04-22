@@ -434,24 +434,25 @@ wait(uint64 addr)
 //  - swtch to start running that process.
 //  - eventually that process transfers control
 //    via swtch back to the scheduler.
-void
-scheduler(void)
+void scheduler(void)
 {
   struct proc *p;
   struct cpu *c = mycpu();
-  
+
   c->proc = 0;
-  for(;;){
+  for (;;)
+  {
     // Avoid deadlock by ensuring that devices can interrupt.
     intr_on();
 
-    for(p = proc; p < &proc[NPROC]; p++) {
+    for (p = proc; p < &proc[NPROC]; p++)
+    {
       // try to find a priority process first
       // will either find a priority process or loop back...
-      // ...and run process p
+      // ...and run the first runnable found
       struct proc *prio = p;
       struct proc *first_runnable = 0;
-      for(;;)
+      for (;;)
       {
         acquire(&prio->lock);
 
@@ -460,32 +461,25 @@ scheduler(void)
         {
           // save the first runnable process we find
           if (!first_runnable)
-            first_runnable = prio;
+            prio->state = RESERVED, first_runnable = prio;
 
           // this is a priority runnable, run it now
           if (prio->priority)
           {
-            // release the lock on our fallback runnable
-            // unless the first backup we found was this one
-            if (prio != first_runnable)
-              release(&first_runnable->lock);
             p = prio;
             break;
           }
         }
 
         // go to the next process
-        if (prio != first_runnable)
-          // do not release the lock on first_runnable
-          // fallback process in case we don't find
-          // a priority process
-          release(&prio->lock);
-        if (prio++ == proc + NPROC) // loop around
+        release(&prio->lock);
+        if (++prio == proc + NPROC) // loop around
           prio = proc;
 
         // back to where we started, set to first runnable and break
         if (prio == p && first_runnable)
         {
+          acquire(&first_runnable->lock);
           p = first_runnable;
           break;
         }

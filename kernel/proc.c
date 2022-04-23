@@ -434,31 +434,67 @@ wait(uint64 addr)
 //  - swtch to start running that process.
 //  - eventually that process transfers control
 //    via swtch back to the scheduler.
-void
-scheduler(void)
+void scheduler(void)
 {
   struct proc *p;
   struct cpu *c = mycpu();
-  
+
   c->proc = 0;
-  for(;;){
+  for (;;)
+  {
     // Avoid deadlock by ensuring that devices can interrupt.
     intr_on();
 
-    for(p = proc; p < &proc[NPROC]; p++) {
-      acquire(&p->lock);
-      if(p->state == RUNNABLE) {
-        // Switch to chosen process.  It is the process's job
-        // to release its lock and then reacquire it
-        // before jumping back to us.
-        p->state = RUNNING;
-        c->proc = p;
-        swtch(&c->context, &p->context);
+    for (p = proc; p < &proc[NPROC]; p++)
+    {
+      // try to find a priority process first
+      // will either find a priority process or loop back...
+      // ...and run the first runnable found
+      struct proc *prio = p;
+      struct proc *first_runnable = 0;
+      for (;;)
+      {
+        acquire(&prio->lock);
 
-        // Process is done running for now.
-        // It should have changed its p->state before coming back.
-        c->proc = 0;
+        // run this process if runnable and is priority
+        if (prio->state == RUNNABLE)
+        {
+          // save the first runnable process we find
+          if (!first_runnable)
+            prio->state = RESERVED, first_runnable = prio;
+
+          // this is a priority runnable, run it now
+          if (prio->priority)
+          {
+            p = prio;
+            break;
+          }
+        }
+
+        // go to the next process
+        release(&prio->lock);
+        if (++prio == proc + NPROC) // loop around
+          prio = proc;
+
+        // back to where we started, set to first runnable and break
+        if (prio == p && first_runnable)
+        {
+          acquire(&first_runnable->lock);
+          p = first_runnable;
+          break;
+        }
       }
+
+      // Switch to chosen process.  It is the process's job
+      // to release its lock and then reacquire it
+      // before jumping back to us.
+      p->state = RUNNING;
+      c->proc = p;
+      swtch(&c->context, &p->context);
+
+      // Process is done running for now.
+      // It should have changed its p->state before coming back.
+      c->proc = 0;
       release(&p->lock);
     }
   }

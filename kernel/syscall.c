@@ -96,6 +96,7 @@ extern uint64 sys_link(void);
 extern uint64 sys_mkdir(void);
 extern uint64 sys_mknod(void);
 extern uint64 sys_open(void);
+extern uint64 sys_seek(void);
 extern uint64 sys_pipe(void);
 extern uint64 sys_read(void);
 extern uint64 sys_sbrk(void);
@@ -126,6 +127,7 @@ static uint64 (*syscalls[])(void) = {
 [SYS_unlink]  sys_unlink,
 [SYS_link]    sys_link,
 [SYS_mkdir]   sys_mkdir,
+[SYS_seek]    sys_seek,
 [SYS_close]   sys_close,
 };
 

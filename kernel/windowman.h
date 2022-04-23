@@ -1,4 +1,4 @@
 struct windowevent {
-    enum {EVT_KEY} type;
+    enum {EVT_KEY, HEAD, TAIL} type;
     int payload;
 };

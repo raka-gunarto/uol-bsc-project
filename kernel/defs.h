@@ -199,7 +199,8 @@ void            virtio_disk_intr(void);
 
 // windowman.c
 void            windowmaninit(void);
-int            windowman_getsize();
+uint            windowman_getsize();
+int             windowmanintr(int);
 
 // number of elements in fixed-size array
 #define NELEM(x) (sizeof(x)/sizeof((x)[0]))

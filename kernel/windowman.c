@@ -15,23 +15,34 @@
 
 struct windowevent evt_queue[ROWS * COLUMNS][NEVTS];
 
+volatile static int active_window = ROWS * COLUMNS;
+
 static void
 drawborders()
 {
     const int width = vga_getwidth();
     const int height = vga_getheight();
 
+    const int activewin_row = active_window / COLUMNS;
+    const int activewin_col = active_window % COLUMNS;
+
     // draw vertical lines
     const int xinterval = width / COLUMNS;
-    for (int row = 1; row < ROWS; ++row)
+    for (int col = 1; col < COLUMNS; ++col)
         for (int y = 0; y < height; ++y)
-            vga_putpixel(xinterval * row, y, 0x0F);
+            if ((col == activewin_col || col - 1 == activewin_col) && (y / (height / ROWS)) == activewin_row)
+                vga_putpixel(xinterval * col, y, 0x28);
+            else
+                vga_putpixel(xinterval * col, y, 0x0F);
 
     // draw horizontal lines
     const int yinterval = height / ROWS;
-    for (int col = 1; col < COLUMNS; ++col)
+    for (int row = 1; row < ROWS; ++row)
         for (int x = 0; x < width; ++x)
-            vga_putpixel(x, yinterval * col, 0x0F);
+            if ((row == activewin_row || row - 1 == activewin_row) && (x / (width / COLUMNS)) == activewin_col)
+                vga_putpixel(x, yinterval * row, 0x28);
+            else
+                vga_putpixel(x, yinterval * row, 0x0F);
 }
 
 static void
@@ -42,10 +53,56 @@ clearscreen()
             vga_putpixel(x, y, 0x00);
 }
 
+static void
+initevtqueue()
+{
+    for (int i = 0; i < ROWS * COLUMNS; ++i)
+        evt_queue[i][0].type = HEAD, evt_queue[i][1].type = TAIL;
+}
+
+#define C(x) ((x) - '@')
+// uart input interrupts go here
+int windowmanintr(int c)
+{
+    switch (c)
+    {
+    case C('T'): // control-t switches windows
+        if (active_window == ROWS * COLUMNS)
+            active_window = 0;
+        else
+            active_window++;
+        drawborders();
+        return 0;
+    default:                                 // control-t switches windows
+        if (active_window == ROWS * COLUMNS) // no active window
+            return -1;
+
+        // active window, add to evt queue
+        // find tail of evt queue
+        for (int tailidx = 0; tailidx < NEVTS; ++tailidx)
+        {
+            // skip if not tail
+            if (evt_queue[active_window][tailidx].type != TAIL)
+                continue;
+
+            // queue is full (tail next to head)
+            if (evt_queue[active_window][(tailidx + 1) % NEVTS].type == HEAD)
+                return 0;
+
+            // add to queue and break
+            evt_queue[active_window][tailidx].type = EVT_KEY;
+            evt_queue[active_window][tailidx].payload = c;
+            evt_queue[active_window][(tailidx + 1) % NEVTS].type = TAIL;
+            break;
+        }
+        return 0;
+    }
+}
+
 // reads max n events from winow event queue, with window specified by the minor
 // number in the device file.
 // copies a windowevent struct or array into addr,
-int windowmanread(int user_src, uint64 addr, int n, struct file *f)
+int windowmanread(int user_dst, uint64 addr, int n, struct file *f)
 {
     if (!f)
         return -1;
@@ -53,13 +110,49 @@ int windowmanread(int user_src, uint64 addr, int n, struct file *f)
     if (f->ip->minor >= (ROWS * COLUMNS)) // invalid window
         return -1;
 
+    // find head of event queue
+    for (int headidx = 0; headidx < NEVTS; ++headidx)
+    {
+        // skip if not head
+        if (evt_queue[f->ip->minor][headidx].type != HEAD)
+            continue;
+        
+        // return if queue empty
+        if (evt_queue[f->ip->minor][(headidx + 1) % NEVTS].type == TAIL)
+            return 0;
+
+        // return all events up to n
+        evt_queue[f->ip->minor][headidx].type = EVT_KEY; // set to something else, just not HEAD or TAIL
+        int evt_count = 0;
+        int current_evtidx = (headidx + 1) % NEVTS;
+        uint64 caddr = addr;
+        for (;
+             evt_count < n && evt_queue[f->ip->minor][current_evtidx].type != TAIL;
+             current_evtidx = (current_evtidx + 1) % NEVTS,
+             ++evt_count,
+             caddr += sizeof(struct windowevent))
+        {
+            either_copyout(user_dst, caddr, &evt_queue[f->ip->minor][current_evtidx], sizeof(struct windowevent));
+            evt_queue[f->ip->minor][current_evtidx].type = HEAD;
+        }
+
+        return evt_count;
+    }
+
     return 0;
 }
 
 // get the size of a grid window
-int windowman_getsize()
+// first 16 bits are width, last 16 bits are height
+uint windowman_getsize()
 {
-    return (vga_getwidth() / COLUMNS) * (vga_getheight() / ROWS);
+    // bit tricks so we can get the individual width and height
+    // in the user end.
+    // NOTE: if width or height is > 2^16 in the future it will be an issue
+    uint16 width, height;
+    width = vga_getwidth() / COLUMNS;
+    height = vga_getheight() / ROWS;
+    return (width << 16) + height;
 }
 
 // write to window specified by the minor number in the device file.
@@ -116,6 +209,7 @@ int windowmanwrite(int user_src, uint64 addr, int n, struct file *f)
         bytes_left = 0;
     }
 
+    drawborders();
     return 0;
 }
 
@@ -127,6 +221,7 @@ void windowmaninit(void)
     devsw[WINDOW].read = windowmanread;
     devsw[WINDOW].write = windowmanwrite;
 
+    initevtqueue();
     clearscreen();
     drawborders();
 }

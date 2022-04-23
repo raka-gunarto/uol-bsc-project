@@ -215,6 +215,14 @@ int windowmanwrite(int user_src, uint64 addr, int n, struct file *f)
 
 void windowmaninit(void)
 {
+    int old = intr_get();
+    intr_on();
+    uint ticks_start = ticks;
+    while (ticks - ticks_start < 25)
+        ; // wait a while, show the startup image first
+    if (!old)
+        intr_off();
+
     // add the window write and window read
     // function pointers to the read/write
     // overrides for WINDOW files.

@@ -182,8 +182,8 @@ int windowmanwrite(int user_src, uint64 addr, int n, struct file *f)
 
     // calculate initial offset in window if f->off isn't 0
     int bytes_left = n;
-    int current_x = f->off % width;
-    int current_y = f->off / width;
+    int current_x = f->off % (width / COLUMNS);
+    int current_y = f->off / (width / COLUMNS);
 
     while (bytes_left > 0)
     {

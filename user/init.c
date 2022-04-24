@@ -17,6 +17,7 @@ main(void)
   int pid, wpid;
   
   // check window device files exist
+  // TODO: find a better way to do this
   if(open("window0", O_RDWR) < 0)
   {
     mknod("window0", WINDOW, 0);

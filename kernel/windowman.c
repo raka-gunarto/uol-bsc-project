@@ -158,6 +158,7 @@ uint windowman_getsize()
 // write to window specified by the minor number in the device file.
 // bytes are taken from memory specified at addr, length n,
 // written to the window starting from the offset in the file struct.
+// TODO: some point in the future maybe support bit blitting?
 int windowmanwrite(int user_src, uint64 addr, int n, struct file *f)
 {
     if (!f)

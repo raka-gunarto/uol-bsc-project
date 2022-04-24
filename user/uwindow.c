@@ -48,12 +48,19 @@ window_handle window_create()
 
         if (fd >= 0)
         {
+            struct stat st;
+            fstat(fd, &st);
+            // check if device file
+            if (st.type != T_DEVICE)
+            {
+                close(fd);
+                continue;
+            }
+
             struct window *win = malloc(sizeof(struct window));
             win->fd = fd;
 
             // extract window sizes
-            struct stat st;
-            fstat(win, &st);
             win->height = ((uint16 *)&st.size)[0];
             win->width = ((uint16 *)&st.size)[1];
 
@@ -120,6 +127,7 @@ void window_drawsprite(window_handle win, uint x, uint y, uint w, uint h, uint8 
 
     // reset cursor
     seek(win->fd, SEEK_SET, 0);
+    free(rowbuf);
 }
 
 void window_drawrect(window_handle win, uint x, uint y, uint w, uint h, uint8 color)
@@ -142,6 +150,7 @@ void window_drawrect(window_handle win, uint x, uint y, uint w, uint h, uint8 co
 
     // reset cursor
     seek(win->fd, SEEK_SET, 0);
+    free(rowbuf);
 }
 
 void window_drawchar(window_handle win, uint x, uint y, char c)
@@ -152,7 +161,7 @@ inline static int abs(int x)
 {
     return (x < 0) ? -x : x;
 }
-inline int interpolate(float i, float j, double t)
+inline static int interpolate(float i, float j, double t)
 {
     return (int)(i * t + j * (1 - t));
 }

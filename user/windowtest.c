@@ -18,8 +18,16 @@ int main(int argc, char *argv[])
     {
         if (window_pollevent(win, &evt, 1) == 1)
         {
+            if (evt.payload == 113) // q was inputted
+                break;
             cc = cc + 1 % 0xFF;
-            window_drawrect(win, 0, 0, dim.width, dim.height, cc);
+            window_drawchar(win, 0, 0, 't', cc);
+            window_drawchar(win, 8, 0, 'e', cc);
+            window_drawchar(win, 16, 0, 's', cc);
+            window_drawchar(win, 24, 0, 't', cc);
+            window_drawrect(win, 0, 16, dim.width, dim.height, cc);
         }
     }
+    window_destroy(win);
+    exit(0);
 }

@@ -4,6 +4,7 @@
 #include "kernel/param.h"
 #include "kernel/fcntl.h"
 #include "kernel/stat.h"
+#include "kernel/font.h"
 #include "user/user.h"
 
 struct window
@@ -153,8 +154,28 @@ void window_drawrect(window_handle win, uint x, uint y, uint w, uint h, uint8 co
     free(rowbuf);
 }
 
-void window_drawchar(window_handle win, uint x, uint y, char c)
+void window_drawchar(window_handle win, uint x, uint y, char c, uint8 color)
 {
+    int mask[8] = {128, 64, 32, 16, 8, 4, 2, 1};
+    uint8 *glyph = VGA_8x16_FONT + (int)c * 16;
+
+    for (int j = 0; j < 16; j++)
+    {
+        for (int i = 0; i < 8; i++)
+        {
+            if (x + i >= win->width || y + j >= win->height)
+                continue;
+            
+            if (glyph[j] & mask[i])
+            {
+                seek(win->fd, SEEK_SET, (y + j) * win->width + x + i);
+                write(win->fd, &color, 1);
+            }
+        }
+    }
+
+    // reset cursor
+    seek(win->fd, SEEK_SET, 0);
 }
 
 inline static int abs(int x)

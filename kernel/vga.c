@@ -4,6 +4,7 @@
 #include "riscv.h"
 #include "defs.h"
 #include "memlayout.h"
+#include "font.h"
 
 #include "bootimg.h"
 

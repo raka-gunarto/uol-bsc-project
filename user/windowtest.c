@@ -7,36 +7,25 @@
 int main(int argc, char *argv[])
 {
     // open the first available window
-    char *winname = "window0";
-    int win = -1;
-    int curwin = 0;
-    while (win < 0)
-    {
-        // too high
-        if (curwin > 9)
-        {
-            printf("windowtest: could not find free window\n");
-            return 1;
-        }
-        winname[6] = curwin++ + '0';
-        win = open(winname, O_RDWR);
-    }
+    window_handle win = window_create();
 
     // go through the palette
     uint8 cc = 0;
-    struct stat st;
-    fstat(win, &st);
-    uint16 *ptr = (uint16 *)&st.size;
-    uint size = ptr[0] * ptr[1];
-    uint8 *data = malloc(sizeof(uint8) * st.size);
     struct windowevent evt;
+    struct window_dim dim = window_getdimensions(win);
+    printf("%d x %d\n", dim.width, dim.height);
     while (1)
     {
-        if (read(win, &evt, 1) == 1)
+        if (window_pollevent(win, &evt, 1) == 1)
         {
+            if (evt.payload == 113) // q was inputted
+                break;
             cc = cc + 1 % 0xFF;
-            memset(data, cc, size);
-            write(win, data, size);
+            window_drawchar(win, 0, 0, ' ', 0x00);
+            window_drawchar(win, 0, 0, evt.payload, cc);
+            window_drawrect(win, 0, 16, dim.width, dim.height, cc);
         }
     }
+    window_destroy(win);
+    exit(0);
 }

@@ -2804,7 +2804,7 @@ void seekfile()
   write(fd, "seektest", 9);
 
   // should read "seek"
-  seek(fd, 0, SEEK_SET);
+  seek(fd, SEEK_SET, 0);
   char* readseek = malloc(sizeof(char) * 5);
   readseek[4] = 0;
   read(fd, readseek, 4);
@@ -2816,7 +2816,7 @@ void seekfile()
   }
   
   // should read "test"
-  seek(fd, 4, SEEK_SET);
+  seek(fd, SEEK_SET, 4);
   read(fd, readseek, 4);
   if (strcmp(readseek, "test") != 0)
   {
@@ -2825,16 +2825,16 @@ void seekfile()
   }
 
   // should overwrite and read "over"
-  seek(fd, 0, SEEK_SET);
+  seek(fd, SEEK_SET, 0);
   write(fd, "over", 5);
-  seek(fd, 0, SEEK_SET);
+  seek(fd, SEEK_SET, 0);
   read(fd, readseek, 4);
   if (strcmp(readseek, "over") != 0)
   {
     printf("seek overwritetest failed\n");
     exit(1);
   }
-  
+
   exit(0);
 }
 

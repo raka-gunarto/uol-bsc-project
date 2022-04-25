@@ -502,7 +502,7 @@ sys_seek(void)
   int type;
   uint64 offset;
 
-  if(argfd(0, 0, &f) < 0 || argint(2, &type) < 0 || argaddr(1, &offset) < 0)
+  if(argfd(0, 0, &f) < 0 || argint(1, &type) < 0 || argaddr(2, &offset) < 0)
     return -1;
   
   return fileseek(f, offset, type);

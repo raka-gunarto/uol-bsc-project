@@ -158,6 +158,7 @@ uint windowman_getsize()
 // write to window specified by the minor number in the device file.
 // bytes are taken from memory specified at addr, length n,
 // written to the window starting from the offset in the file struct.
+// TODO: some point in the future maybe support bit blitting?
 int windowmanwrite(int user_src, uint64 addr, int n, struct file *f)
 {
     if (!f)
@@ -181,8 +182,8 @@ int windowmanwrite(int user_src, uint64 addr, int n, struct file *f)
 
     // calculate initial offset in window if f->off isn't 0
     int bytes_left = n;
-    int current_x = f->off % width;
-    int current_y = f->off / width;
+    int current_x = f->off % (width / COLUMNS);
+    int current_y = f->off / (width / COLUMNS);
 
     while (bytes_left > 0)
     {
@@ -215,6 +216,14 @@ int windowmanwrite(int user_src, uint64 addr, int n, struct file *f)
 
 void windowmaninit(void)
 {
+    int old = intr_get();
+    intr_on();
+    uint ticks_start = ticks;
+    while (ticks - ticks_start < 25)
+        ; // wait a while, show the startup image first
+    if (!old)
+        intr_off();
+
     // add the window write and window read
     // function pointers to the read/write
     // overrides for WINDOW files.

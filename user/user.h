@@ -56,6 +56,7 @@ window_handle window_create();
 void window_destroy(window_handle win);
 struct window_dim window_getdimensions(window_handle win);
 int window_pollevent(window_handle win, struct windowevent *evts, int max_evts);
+void window_clearscreen(window_handle win);
 void window_drawsprite(window_handle win, uint x, uint y, uint w, uint h, uint8 *data);
 void window_drawrect(window_handle win, uint x, uint y, uint w, uint h, uint8 color);
 void window_drawchar(window_handle win, uint x, uint y, char c, uint8 color);

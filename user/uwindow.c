@@ -105,6 +105,14 @@ static int valid_coords(window_handle win, uint x, uint y)
     return x < win->width && y < win->height;
 }
 
+void window_clearscreen(window_handle win)
+{
+    uint8 *buf = malloc(win->height * win->width);
+    memset(buf, 0x00, win->height * win->width);
+    write(win->fd, buf, win->height * win->width);
+    free(buf);
+}
+
 void window_drawsprite(window_handle win, uint x, uint y, uint w, uint h, uint8 *data)
 {
     // check coords
@@ -118,8 +126,7 @@ void window_drawsprite(window_handle win, uint x, uint y, uint w, uint h, uint8 
     for (int j = 0; j < height; ++j)
     {
         // copy bytes into rowbuf
-        for (int i = 0; i < width; ++i)
-            rowbuf[i] = data[j * w + i];
+        memmove(rowbuf, data + (j * w), width);
 
         // write to screen
         seek(win->fd, SEEK_SET, ((y + j) * win->width) + x);

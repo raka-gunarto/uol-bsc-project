@@ -21,10 +21,8 @@ int main(int argc, char *argv[])
             if (evt.payload == 113) // q was inputted
                 break;
             cc = cc + 1 % 0xFF;
-            window_drawchar(win, 0, 0, 't', cc);
-            window_drawchar(win, 8, 0, 'e', cc);
-            window_drawchar(win, 16, 0, 's', cc);
-            window_drawchar(win, 24, 0, 't', cc);
+            window_drawchar(win, 0, 0, ' ', 0x00);
+            window_drawchar(win, 0, 0, evt.payload, cc);
             window_drawrect(win, 0, 16, dim.width, dim.height, cc);
         }
     }

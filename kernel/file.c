@@ -12,6 +12,7 @@
 #include "file.h"
 #include "stat.h"
 #include "proc.h"
+#include "fcntl.h"
 
 struct devsw devsw[NDEV];
 struct {
@@ -116,7 +117,7 @@ fileread(struct file *f, uint64 addr, int n)
   } else if(f->type == FD_DEVICE){
     if(f->major < 0 || f->major >= NDEV || !devsw[f->major].read)
       return -1;
-    r = devsw[f->major].read(1, addr, n);
+    r = devsw[f->major].read(1, addr, n, f);
   } else if(f->type == FD_INODE){
     ilock(f->ip);
     if((r = readi(f->ip, 1, addr, f->off, n)) > 0)
@@ -144,7 +145,7 @@ filewrite(struct file *f, uint64 addr, int n)
   } else if(f->type == FD_DEVICE){
     if(f->major < 0 || f->major >= NDEV || !devsw[f->major].write)
       return -1;
-    ret = devsw[f->major].write(1, addr, n);
+    ret = devsw[f->major].write(1, addr, n, f);
   } else if(f->type == FD_INODE){
     // write a few blocks at a time to avoid exceeding
     // the maximum log transaction size, including
@@ -180,3 +181,30 @@ filewrite(struct file *f, uint64 addr, int n)
   return ret;
 }
 
+int
+fileseek(struct file *f, uint64 offset, int type)
+{
+  // acquire ip lock, need to read size
+  ilock(f->ip);
+
+  // calculate offsets
+  uint64 newoff = -1;
+  if (type & SEEK_SET)  
+    newoff = offset;
+  else if (type & SEEK_CUR)
+    newoff = f->off + offset;
+  else if (type & SEEK_END)
+    newoff = f->ip->size + offset;
+  
+  // offset wasn't set properly or is over the file size
+  if (newoff == -1 || offset > f->ip->size)
+  {
+    iunlock(f->ip);
+    return -1; // fail
+  }
+
+  // set the new offset and return
+  iunlock(f->ip);
+  f->off = newoff;
+  return 0;
+}

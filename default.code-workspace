@@ -5,7 +5,10 @@
         }
     ],
     "settings": {
-        "latex-workshop.latex.outDir": "%DIR%/output"
+        "latex-workshop.latex.outDir": "%DIR%/output",
+        "files.associations": {
+            "param.h": "c"
+        }
     },
     "tasks": {
         "version": "2.0.0",
@@ -75,13 +78,16 @@
         "configurations": [
             {
                 "type": "gdb",
-                "request": "launch",
+                "request": "attach",
                 "name": "Launch xv6",
-                "gdbpath": "/usr/bin/gdb-multiarch",
-                "target": "./kernel/kernel",
+                "executable": "./kernel/kernel",
+                "target": "127.0.0.1:25000",
+                "remote": true,
                 "cwd": "${workspaceRoot}",
                 "valuesFormatting": "parseText",
-                "preLaunchTask": "QEMU Debug"
+                "gdbpath": "/usr/bin/gdb-multiarch",
+                "debugger_args": ["-nx"],
+                "preLaunchTask": "QEMU Debug",
             }
         ]
     }

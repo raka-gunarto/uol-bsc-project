@@ -1,0 +1,292 @@
+
+// vga mode settings
+#define VGA_REGISTERS_LEN 29
+enum VGA_REGISTERS
+{
+  MISC_OUT,
+  HORIZONTAL_RETRACE_END,
+
+  CLK_MODE,
+  CHAR_SEL,
+  MEM_MODE,
+  MODE,
+  MISC,
+
+  MODE_CTRL,
+  OVERSCAN,
+  COLOR_PLANE_EN,
+  HORIZONTAL_PAN,
+  COLOR_SEL,
+  HORIZONTAL_TOT,
+  HORIZONTAL_DISP_EN_END,
+  HORIZONTAL_BLANK_START,
+  HORIZONTAL_BLANK_END,
+  HORIZONTAL_RETRACE_START,
+  VERTICAL_TOT,
+  OVERFLOW,
+  PRESET_ROW_SCAN,
+  MAX_SCAN_LINE,
+  VERTICAL_RETRACE_START,
+  VERTICAL_RETRACE_END,
+  VERTICAL_DISP_EN_END,
+  LOGICAL_WIDTH,
+  UNDERLINE_LOC,
+  VERTICAL_BLANK_START,
+  VERTICAL_BLANK_END,
+  MODE_CTRL_2
+};
+
+#define VGA_MODES_LEN 2
+enum VGA_MODES
+{
+  TEXT,
+  LINEAR_256COLOR_320x200
+};
+
+static const unsigned int VGA_256COL_PALETTE[256] = {
+    0x000000, 0x0000a8, 0x00a800, 0x00a8a8, 0xa80000, 0xa800a8, 0xa85400,
+    0xa8a8a8, 0x545454, 0x5454fc, 0x54fc54, 0x54fcfc, 0xfc5454, 0xfc54fc,
+    0xfcfc54, 0xfcfcfc, 0x000000, 0x141414, 0x202020, 0x2c2c2c, 0x383838,
+    0x444444, 0x505050, 0x606060, 0x707070, 0x808080, 0x909090, 0xa0a0a0,
+    0xb4b4b4, 0xc8c8c8, 0xe0e0e0, 0xfcfcfc, 0x0000fc, 0x4000fc, 0x7c00fc,
+    0xbc00fc, 0xfc00fc, 0xfc00bc, 0xfc007c, 0xfc0040, 0xfc0000, 0xfc4000,
+    0xfc7c00, 0xfcbc00, 0xfcfc00, 0xbcfc00, 0x7cfc00, 0x40fc00, 0x00fc00,
+    0x00fc40, 0x00fc7c, 0x00fcbc, 0x00fcfc, 0x00bcfc, 0x007cfc, 0x0040fc,
+    0x7c7cfc, 0x9c7cfc, 0xbc7cfc, 0xdc7cfc, 0xfc7cfc, 0xfc7cdc, 0xfc7cbc,
+    0xfc7c9c, 0xfc7c7c, 0xfc9c7c, 0xfcbc7c, 0xfcdc7c, 0xfcfc7c, 0xdcfc7c,
+    0xbcfc7c, 0x9cfc7c, 0x7cfc7c, 0x7cfc9c, 0x7cfcbc, 0x7cfcdc, 0x7cfcfc,
+    0x7cdcfc, 0x7cbcfc, 0x7c9cfc, 0xb4b4fc, 0xc4b4fc, 0xd8b4fc, 0xe8b4fc,
+    0xfcb4fc, 0xfcb4e8, 0xfcb4d8, 0xfcb4c4, 0xfcb4b4, 0xfcc4b4, 0xfcd8b4,
+    0xfce8b4, 0xfcfcb4, 0xe8fcb4, 0xd8fcb4, 0xc4fcb4, 0xb4fcb4, 0xb4fcc4,
+    0xb4fcd8, 0xb4fce8, 0xb4fcfc, 0xb4e8fc, 0xb4d8fc, 0xb4c4fc, 0x000070,
+    0x1c0070, 0x380070, 0x540070, 0x700070, 0x700054, 0x700038, 0x70001c,
+    0x700000, 0x701c00, 0x703800, 0x705400, 0x707000, 0x547000, 0x387000,
+    0x1c7000, 0x007000, 0x00701c, 0x007038, 0x007054, 0x007070, 0x005470,
+    0x003870, 0x001c70, 0x383870, 0x443870, 0x543870, 0x603870, 0x703870,
+    0x703860, 0x703854, 0x703844, 0x703838, 0x704438, 0x705438, 0x706038,
+    0x707038, 0x607038, 0x547038, 0x447038, 0x387038, 0x387044, 0x387054,
+    0x387060, 0x387070, 0x386070, 0x385470, 0x384470, 0x505070, 0x585070,
+    0x605070, 0x685070, 0x705070, 0x705068, 0x705060, 0x705058, 0x705050,
+    0x705850, 0x706050, 0x706850, 0x707050, 0x687050, 0x607050, 0x587050,
+    0x507050, 0x507058, 0x507060, 0x507068, 0x507070, 0x506870, 0x506070,
+    0x505870, 0x000040, 0x100040, 0x200040, 0x300040, 0x400040, 0x400030,
+    0x400020, 0x400010, 0x400000, 0x401000, 0x402000, 0x403000, 0x404000,
+    0x304000, 0x204000, 0x104000, 0x004000, 0x004010, 0x004020, 0x004030,
+    0x004040, 0x003040, 0x002040, 0x001040, 0x202040, 0x282040, 0x302040,
+    0x382040, 0x402040, 0x402038, 0x402030, 0x402028, 0x402020, 0x402820,
+    0x403020, 0x403820, 0x404020, 0x384020, 0x304020, 0x284020, 0x204020,
+    0x204028, 0x204030, 0x204038, 0x204040, 0x203840, 0x203040, 0x202840,
+    0x2c2c40, 0x302c40, 0x342c40, 0x3c2c40, 0x402c40, 0x402c3c, 0x402c34,
+    0x402c30, 0x402c2c, 0x40302c, 0x40342c, 0x403c2c, 0x40402c, 0x3c402c,
+    0x34402c, 0x30402c, 0x2c402c, 0x2c4030, 0x2c4034, 0x2c403c, 0x2c4040,
+    0x2c3c40, 0x2c3440, 0x2c3040, 0x000000, 0x000000, 0x000000, 0x000000,
+    0x000000, 0x000000, 0x000000, 0x000000};
+
+static const int VGA_MODE_PORT[VGA_REGISTERS_LEN] = {
+    [MODE_CTRL] 0x3C0,
+    [OVERSCAN] 0x3C0,
+    [COLOR_PLANE_EN] 0x3C0,
+    [HORIZONTAL_PAN] 0x3C0,
+    [COLOR_SEL] 0x3C0,
+    [MISC_OUT] 0x3C2,
+    [CLK_MODE] 0x3C4,
+    [CHAR_SEL] 0x3C4,
+    [MEM_MODE] 0x3C4,
+    [MODE] 0x3CE,
+    [MISC] 0x3CE,
+    [HORIZONTAL_TOT] 0x3D4,
+    [HORIZONTAL_DISP_EN_END] 0x3D4,
+    [HORIZONTAL_BLANK_START] 0x3D4,
+    [HORIZONTAL_BLANK_END] 0x3D4,
+    [HORIZONTAL_RETRACE_START] 0x3D4,
+    [HORIZONTAL_RETRACE_END] 0x3D4,
+    [VERTICAL_TOT] 0x3D4,
+    [OVERFLOW] 0x3D4,
+    [PRESET_ROW_SCAN] 0x3D4,
+    [MAX_SCAN_LINE] 0x3D4,
+    [VERTICAL_RETRACE_START] 0x3D4,
+    [VERTICAL_RETRACE_END] 0x3D4,
+    [VERTICAL_DISP_EN_END] 0x3D4,
+    [LOGICAL_WIDTH] 0x3D4,
+    [UNDERLINE_LOC] 0x3D4,
+    [VERTICAL_BLANK_START] 0x3D4,
+    [VERTICAL_BLANK_END] 0x3D4,
+    [MODE_CTRL_2] 0x3D4};
+
+static const int VGA_MODE_IDX[VGA_REGISTERS_LEN] = {
+    [MODE_CTRL] 0x10,
+    [OVERSCAN] 0x11,
+    [COLOR_PLANE_EN] 0x12,
+    [HORIZONTAL_PAN] 0x13,
+    [COLOR_SEL] 0x14,
+    [MISC_OUT] 0xff,
+    [CLK_MODE] 0x01,
+    [CHAR_SEL] 0x03,
+    [MEM_MODE] 0x04,
+    [MODE] 0x05,
+    [MISC] 0x06,
+    [HORIZONTAL_TOT] 0x00,
+    [HORIZONTAL_DISP_EN_END] 0x01,
+    [HORIZONTAL_BLANK_START] 0x02,
+    [HORIZONTAL_BLANK_END] 0x03,
+    [HORIZONTAL_RETRACE_START] 0x04,
+    [HORIZONTAL_RETRACE_END] 0x05,
+    [VERTICAL_TOT] 0x06,
+    [OVERFLOW] 0x07,
+    [PRESET_ROW_SCAN] 0x08,
+    [MAX_SCAN_LINE] 0x09,
+    [VERTICAL_RETRACE_START] 0x10,
+    [VERTICAL_RETRACE_END] 0x11,
+    [VERTICAL_DISP_EN_END] 0x12,
+    [LOGICAL_WIDTH] 0x13,
+    [UNDERLINE_LOC] 0x14,
+    [VERTICAL_BLANK_START] 0x15,
+    [VERTICAL_BLANK_END] 0x16,
+    [MODE_CTRL_2] 0x17};
+
+static const int VGA_MODE_VAL[VGA_REGISTERS_LEN][VGA_MODES_LEN] = {
+    [MODE_CTRL]
+    {
+      [TEXT] 0x0C,
+          [LINEAR_256COLOR_320x200] 0x41
+    },
+    [OVERSCAN]
+    {
+      [TEXT] 0x00,
+          [LINEAR_256COLOR_320x200] 0x00
+    },
+    [COLOR_PLANE_EN]
+    {
+      [TEXT] 0x0F,
+          [LINEAR_256COLOR_320x200] 0x0F
+    },
+    [HORIZONTAL_PAN]
+    {
+      [TEXT] 0x08,
+          [LINEAR_256COLOR_320x200] 0x00
+    },
+    [COLOR_SEL]
+    {
+      [TEXT] 0x00,
+          [LINEAR_256COLOR_320x200] 0x00
+    },
+    [MISC_OUT]
+    {
+      [TEXT] 0x67,
+          [LINEAR_256COLOR_320x200] 0x63
+    },
+    [CLK_MODE]
+    {
+      [TEXT] 0x00,
+          [LINEAR_256COLOR_320x200] 0x01
+    },
+    [CHAR_SEL]
+    {
+      [TEXT] 0x00,
+          [LINEAR_256COLOR_320x200] 0x00
+    },
+    [MEM_MODE]
+    {
+      [TEXT] 0x07,
+          [LINEAR_256COLOR_320x200] 0x0E
+    },
+    [MODE]
+    {
+      [TEXT] 0x10,
+          [LINEAR_256COLOR_320x200] 0x40
+    },
+    [MISC]
+    {
+      [TEXT] 0x0E,
+          [LINEAR_256COLOR_320x200] 0x05
+    },
+    [HORIZONTAL_TOT]
+    {
+      [TEXT] 0x5F,
+          [LINEAR_256COLOR_320x200] 0x5F
+    },
+    [HORIZONTAL_DISP_EN_END]
+    {
+      [TEXT] 0x4F,
+          [LINEAR_256COLOR_320x200] 0x4F
+    },
+    [HORIZONTAL_BLANK_START]
+    {
+      [TEXT] 0x50,
+          [LINEAR_256COLOR_320x200] 0x50
+    },
+    [HORIZONTAL_BLANK_END]
+    {
+      [TEXT] 0x82,
+          [LINEAR_256COLOR_320x200] 0x82
+    },
+    [HORIZONTAL_RETRACE_START]
+    {
+      [TEXT] 0x55,
+          [LINEAR_256COLOR_320x200] 0x54
+    },
+    [HORIZONTAL_RETRACE_END]
+    {
+      [TEXT] 0x81,
+          [LINEAR_256COLOR_320x200] 0x80
+    },
+    [VERTICAL_TOT]
+    {
+      [TEXT] 0xBF,
+          [LINEAR_256COLOR_320x200] 0xBF
+    },
+    [OVERFLOW]
+    {
+      [TEXT] 0x1F,
+          [LINEAR_256COLOR_320x200] 0x1F
+    },
+    [PRESET_ROW_SCAN]
+    {
+      [TEXT] 0x00,
+          [LINEAR_256COLOR_320x200] 0x00
+    },
+    [MAX_SCAN_LINE]
+    {
+      [TEXT] 0x4F,
+          [LINEAR_256COLOR_320x200] 0x41
+    },
+    [VERTICAL_RETRACE_START]
+    {
+      [TEXT] 0x9C,
+          [LINEAR_256COLOR_320x200] 0x9C
+    },
+    [VERTICAL_RETRACE_END]
+    {
+      [TEXT] 0x8E,
+          [LINEAR_256COLOR_320x200] 0x8E
+    },
+    [VERTICAL_DISP_EN_END]
+    {
+      [TEXT] 0x8F,
+          [LINEAR_256COLOR_320x200] 0x8F
+    },
+    [LOGICAL_WIDTH]
+    {
+      [TEXT] 0x28,
+          [LINEAR_256COLOR_320x200] 0x28
+    },
+    [UNDERLINE_LOC]
+    {
+      [TEXT] 0x1F,
+          [LINEAR_256COLOR_320x200] 0x40
+    },
+    [VERTICAL_BLANK_START]
+    {
+      [TEXT] 0x96,
+          [LINEAR_256COLOR_320x200] 0x96
+    },
+    [VERTICAL_BLANK_END]
+    {
+      [TEXT] 0xB9,
+          [LINEAR_256COLOR_320x200] 0xB9
+    },
+    [MODE_CTRL_2]
+    {
+      [TEXT] 0xA3,
+          [LINEAR_256COLOR_320x200] 0xA3
+    }};

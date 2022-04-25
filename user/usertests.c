@@ -2797,6 +2797,47 @@ run(void f(char *), char *s) {
   }
 }
 
+// tests that seek() system call works
+void seekfile()
+{
+  int fd = open("seektest.txt", O_CREATE | O_RDWR);
+  write(fd, "seektest", 9);
+
+  // should read "seek"
+  seek(fd, SEEK_SET, 0);
+  char* readseek = malloc(sizeof(char) * 5);
+  readseek[4] = 0;
+  read(fd, readseek, 4);
+  if (strcmp(readseek, "seek") != 0)
+  {
+    printf("seek test 1 failed\n");
+    printf("%s\n", readseek);
+    exit(1);
+  }
+  
+  // should read "test"
+  seek(fd, SEEK_SET, 4);
+  read(fd, readseek, 4);
+  if (strcmp(readseek, "test") != 0)
+  {
+    printf("seek test 2 failed\n");
+    exit(1);
+  }
+
+  // should overwrite and read "over"
+  seek(fd, SEEK_SET, 0);
+  write(fd, "over", 5);
+  seek(fd, SEEK_SET, 0);
+  read(fd, readseek, 4);
+  if (strcmp(readseek, "over") != 0)
+  {
+    printf("seek overwritetest failed\n");
+    exit(1);
+  }
+
+  exit(0);
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -2881,6 +2922,7 @@ main(int argc, char *argv[])
     {iref, "iref"},
     {forktest, "forktest"},
     {bigdir, "bigdir"}, // slow
+    {seekfile, "seekfile"},
     { 0, 0},
   };
 

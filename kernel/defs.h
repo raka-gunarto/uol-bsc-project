@@ -33,6 +33,7 @@ void            fileinit(void);
 int             fileread(struct file*, uint64, int n);
 int             filestat(struct file*, uint64 addr);
 int             filewrite(struct file*, uint64, int n);
+int             fileseek(struct file*, uint64 offset, int type);
 
 // fs.c
 void            fsinit(int);
@@ -69,6 +70,9 @@ void            initlog(int, struct superblock*);
 void            log_write(struct buf*);
 void            begin_op(void);
 void            end_op(void);
+
+// pci.c
+void            pciinit(void);
 
 // pipe.c
 int             pipealloc(struct file**, struct file**);
@@ -171,6 +175,17 @@ int             copyout(pagetable_t, uint64, char *, uint64);
 int             copyin(pagetable_t, char *, uint64, uint64);
 int             copyinstr(pagetable_t, char *, uint64, uint64);
 
+// vga.c
+void            vgainit(int);
+void            vga_setmode(enum VGA_MODES);
+void            vga_setavailable();
+int             vga_putpixel(int, int, uint8);
+enum VGA_MODES  vga_getmode();
+int             vga_getwidth();
+int             vga_getheight();
+volatile uint8* vga_getframebuffer();
+
+
 // plic.c
 void            plicinit(void);
 void            plicinithart(void);
@@ -181,6 +196,11 @@ void            plic_complete(int);
 void            virtio_disk_init(void);
 void            virtio_disk_rw(struct buf *, int);
 void            virtio_disk_intr(void);
+
+// windowman.c
+void            windowmaninit(void);
+uint            windowman_getsize();
+int             windowmanintr(int);
 
 // number of elements in fixed-size array
 #define NELEM(x) (sizeof(x)/sizeof((x)[0]))

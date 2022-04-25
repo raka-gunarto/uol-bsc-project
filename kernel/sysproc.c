@@ -18,6 +18,18 @@ sys_exit(void)
 }
 
 uint64
+sys_setpriority(void)
+{
+  int prio;
+  if (argint(0, &prio) < 0)
+    return -1;
+  if (prio != 0 || prio != 1)
+    return -1;
+  myproc()->priority = prio;
+  return 0;
+}
+
+uint64
 sys_getpid(void)
 {
   return myproc()->pid;

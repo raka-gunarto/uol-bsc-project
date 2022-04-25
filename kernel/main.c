@@ -3,8 +3,10 @@
 #include "memlayout.h"
 #include "riscv.h"
 #include "defs.h"
+#include "vga.h"
 
 volatile static int started = 0;
+volatile static int pci_ready = 0;
 
 // start() jumps here in supervisor mode on all CPUs.
 void
@@ -19,6 +21,10 @@ main()
     kinit();         // physical page allocator
     kvminit();       // create kernel page table
     kvminithart();   // turn on paging
+    pciinit();       // pci devices
+    __sync_synchronize();
+    pci_ready = 1;
+    vgainit(0);       // setup VGA (if available)
     procinit();      // process table
     trapinit();      // trap vectors
     trapinithart();  // install kernel trap vector
@@ -29,9 +35,13 @@ main()
     fileinit();      // file table
     virtio_disk_init(); // emulated hard disk
     userinit();      // first user process
+    windowmaninit();
     __sync_synchronize();
     started = 1;
   } else {
+    while(pci_ready == 0)
+      ;
+    vgainit(cpuid());
     while(started == 0)
       ;
     __sync_synchronize();

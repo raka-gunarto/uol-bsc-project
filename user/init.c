@@ -15,6 +15,18 @@ int
 main(void)
 {
   int pid, wpid;
+  
+  // check window device files exist
+  // TODO: find a better way to do this
+  if(open("window0", O_RDWR) < 0)
+  {
+    mknod("window0", WINDOW, 0);
+    mknod("window1", WINDOW, 1);
+    mknod("window2", WINDOW, 2);
+    mknod("window3", WINDOW, 3);
+  }
+  else
+    close(0);
 
   if(open("console", O_RDWR) < 0){
     mknod("console", CONSOLE, 0);

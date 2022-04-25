@@ -322,6 +322,16 @@ sys_open(void)
     return -1;
   }
 
+  if (ip->type == T_DEVICE && ip->major == WINDOW) {
+    if (ip->ref > 1) { // only one access per window
+      iunlockput(ip);
+      end_op();
+      return -1;
+    }
+
+    ip->size = windowman_getsize();
+  }
+
   if((f = filealloc()) == 0 || (fd = fdalloc(f)) < 0){
     if(f)
       fileclose(f);
@@ -483,4 +493,17 @@ sys_pipe(void)
     return -1;
   }
   return 0;
+}
+
+uint64
+sys_seek(void)
+{
+  struct file *f;
+  int type;
+  uint64 offset;
+
+  if(argfd(0, 0, &f) < 0 || argint(1, &type) < 0 || argaddr(2, &offset) < 0)
+    return -1;
+  
+  return fileseek(f, offset, type);
 }

@@ -5,7 +5,7 @@ struct file {
   char writable;
   struct pipe *pipe; // FD_PIPE
   struct inode *ip;  // FD_INODE and FD_DEVICE
-  uint off;          // FD_INODE
+  uint off;          // FD_INODE and (some) FD_DEVICE
   short major;       // FD_DEVICE
 };
 
@@ -31,10 +31,11 @@ struct inode {
 
 // map major device number to device functions.
 struct devsw {
-  int (*read)(int, uint64, int);
-  int (*write)(int, uint64, int);
+  int (*read)(int, uint64, int, struct file*);
+  int (*write)(int, uint64, int, struct file*);
 };
 
 extern struct devsw devsw[];
 
 #define CONSOLE 1
+#define WINDOW 2
